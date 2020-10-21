@@ -89,8 +89,11 @@ void fun_slot(void){
 
 //finally Book the slot here
 void fun_final(void){
-
-
+    string s =combo_slots->getSelectedItem().toAnsiString();
+    string dp = "child_care";
+    string dy = combo_day->getSelectedItem().toAnsiString();
+    int x = p.book_appointment(conn,s,dp,dy);
+    std::cout<<std::endl<<x;
 
 
 
@@ -304,7 +307,7 @@ void loadWidgets( tgui::Gui& gui )
     btn_allot->setPosition({"67%", "56%"});
     btn_allot->setVisible(false);
     gui.add(btn_allot);
-    btn_allot->connect("pressed",fun_show);
+    btn_allot->connect("pressed",fun_final);
 
 
 

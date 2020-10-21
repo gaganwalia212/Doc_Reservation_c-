@@ -28,7 +28,7 @@ public:
     int reg(MYSQL*conn,string,string,string,string);
     void display(MYSQL*conn,string);
     void display_slot(MYSQL*conn,string,string);
-    void book_appointment(MYSQL*conn);
+    int book_appointment(MYSQL*conn,string,string,string);
 };
 
 int Patient ::login(MYSQL*conn,string email,string pass)
@@ -221,9 +221,17 @@ void Patient::display_slot(MYSQL*conn,string dept,string day)
 
 }
 
-void Patient::book_appointment(MYSQL*conn)
+int Patient::book_appointment(MYSQL*conn,string Slot,string dep,string Day)
 {
-
+                    stringstream s;
+                    //updating tables and add patient ID for Booking
+                    cout<<Slot;
+                    cout<<endl<<dep;
+                    cout<<endl<<Day;
+                    s<<"Update Booking set "<<Slot<<"='"<<id<<"'where avail_day = '"<<Day<<"' && Department='"<<dep<<"'";
+                    string q=s.str();
+                    int state=mysql_query(conn,q.c_str());
+                    return state;
 
 }
 
