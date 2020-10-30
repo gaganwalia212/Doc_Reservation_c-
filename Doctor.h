@@ -1,6 +1,7 @@
 #ifndef DOCTOR_H_INCLUDED
 #define DOCTOR_H_INCLUDED
 
+#include<cstdlib>
 #include <iostream>
 #include<winsock.h>
 #include"mysql.h"
@@ -8,18 +9,24 @@
 #include<sstream>
 #include<string>
 #include<iomanip>
+
 using namespace std;
+
 
 class Doctor
 {
     string id;
+    string dept;
 public:
     void login(MYSQL*conn);
-    void reg(MYSQL*conn);
+    string display_appointments(MYSQL*conn);
 };
 
 void Doctor::login(MYSQL*conn)
 {
+    system("cls");
+    cout<<setw(62)<<setfill('_')<<" "<<setfill(' ')<<"DOCTOR LOGIN";
+    cout<<setw(50)<<setfill('_')<<" "<<setfill(' ')<<endl;
     MYSQL_ROW row;
     MYSQL_RES* res;
     string email,pass;
@@ -28,7 +35,7 @@ void Doctor::login(MYSQL*conn)
     cout<<setw(62)<<" "<<"Enter password:";
     cin>>pass;
     stringstream s;
-    s<<"select * from login where (email,password,user)=("<<"'"<<email<<"','"<<pass<<"',1"<<");";
+    s<<"select * from Doctors where (email,pass)=("<<"'"<<email<<"','"<<pass<<"');";
     string qs=s.str();
     int qstate=mysql_query(conn,qs.c_str());
     if(qstate==0)
@@ -41,10 +48,14 @@ void Doctor::login(MYSQL*conn)
             cout<<endl<<endl<<setw(62)<<" "<<"-----Welcome-----"<<endl;
             cout<<setw(62)<<" "<<setw(30)<<left<<row[0]<<setw(20)<<row[1]<<setw(20)<<row[2];
             id=row[0];
+            dept=row[2];
             return ;
         }
         if(i==0)
+        {
             cout<<setw(62)<<" "<<"Incorrect password or email....Try Again\n";
+            exit(0);
+        }
 
     }
     else
@@ -55,66 +66,50 @@ void Doctor::login(MYSQL*conn)
 }
 
 
-void Doctor::reg(MYSQL*conn)
-{
-    MYSQL_ROW row;
-    MYSQL_RES* res;
+//this function will return a string
+//each line on string will contain information about the appointment
+string Doctor::display_appointments(MYSQL*conn)
+{     system("cls");
+    cout<<setw(62)<<setfill('_')<<" "<<setfill(' ')<<"YOUR APPOINTMENTS";
+    cout<<setw(50)<<setfill('_')<<" "<<setfill(' ')<<endl;
 
-    string email,pass,confirm;
-    cout<<setw(62)<<" "<<"Enter email:";
-    cin>>email;
-    cout<<setw(62)<<" "<<"Enter Password:";
-    cin>>pass;
-    cout<<setw(62)<<" "<<"Confirm Password:";
-    cin>>confirm;
-    while(confirm!=pass)
-    {
-        cout<<setw(62)<<" "<<"Password does not match\n";
-        cout<<setw(62)<<" "<<"Enter Password:";
-        cin>>pass;
-        cout<<setw(62)<<" "<<"Confirm Password:";
-        cin>>confirm;
-    }
-    stringstream s1;
-    s1<<"select * from login where email='"<<email<<"';";
-
-    string qs=s1.str();
-    int qstate=mysql_query(conn,qs.c_str());
-    if(qstate==0)
-    {
-        res=mysql_store_result(conn);
-        int i=0;
-        while(row=mysql_fetch_row(res))
-            i++;
-
-        if(i!=0)
+    //string stream whose string will be returned
+    stringstream final_stream;
+    int success=0;
+        stringstream s;
+        s.clear();
+        s.str("");
+        s<<"Select * from Booking where Department='"<<dept<<"';";
+         string q=s.str();
+        int qstate=mysql_query(conn,q.c_str());
+        if(qstate!=0)
         {
-            cout<<setw(62)<<" "<<"Email address already exists\n";
-            cout<<setw(62)<<" "<<"Please Login:\n";
-            login(conn);
-            return;
+            cout<<setw(62)<<" "<<"Error..please try again\n";
+            exit(0);
         }
-    }
-    int role=1;//for doctor
-    stringstream s;
+        MYSQL_RES *result=mysql_store_result(conn);
+        MYSQL_ROW row;
+        int i=0;
+        while(row=mysql_fetch_row(result))
+        {
 
-    //CODE FOR OTP
+            for(int k=2;k<=6;k++)
+            {
+                if(strcmp(row[k],"None")!=0)
+                {
+                    i++;
+                    stringstream temp;
+                    temp<<row[7]<<":"<<" "<<"["<<k-1<<"]  "<<row[k];
+                    final_stream<<temp.str()<<endl;
+                }
+            }
+        }
+        if(i==0)
+        {
+            return string("No Appointments\n");
+        }
 
-
-    s<<"insert into login values("<<"'"<<email<<"'"<<",'"<<pass<<"','"<<role<<"');";
-    qs=s.str();
-     qstate=mysql_query(conn,qs.c_str());
-    if(qstate==0)
-    {
-        cout<<setw(62)<<" "<<"Registration done\n";
-    }
-    else
-    {
-        cout<<setw(62)<<" "<<"Registration failed...please try again\n";
-        exit(0);
-    }
-    id=email;
-    return ;
+    return final_stream.str();
 }
 
 
